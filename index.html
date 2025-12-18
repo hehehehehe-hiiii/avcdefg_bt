@@ -1,0 +1,513 @@
+
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StackShift Drive | Download</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="logo/logo.svg"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#050505',
+                        glass: 'rgba(255, 255, 255, 0.03)',
+                        glassBorder: 'rgba(255, 255, 255, 0.08)',
+                        gold: '#D4C5A5',
+                        goldDim: 'rgba(212, 197, 165, 0.1)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(212, 197, 165, 0.1)',
+                        'island': '0 8px 32px rgba(0, 0, 0, 0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+        }
+
+        /* Glass & Utilities */
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-glass {
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .gold-glow:hover {
+            box-shadow: 0 0 15px rgba(212, 197, 165, 0.15);
+            border-color: rgba(212, 197, 165, 0.4);
+        }
+
+        /* Loading Animation */
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(212, 197, 165, 0.2), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-bg text-gray-300 overflow-hidden h-screen selection:bg-gold selection:text-black">
+
+    <!-- Dynamic Island (Loader) -->
+    <div id="dynamic-island-wrapper" class="fixed top-6 left-0 w-full flex justify-center z-[9999] pointer-events-none">
+        <div id="dynamic-island"
+            class="bg-black border border-white/10 shadow-island rounded-[30px] overflow-hidden flex items-center justify-center relative">
+            <div id="loading-content"
+                class="flex flex-col items-center justify-center w-64 h-12 gap-2 absolute opacity-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-gold animate-pulse"></div>
+                    <span class="text-xs font-medium text-white tracking-wide">Loading...</span>
+                </div>
+                <div class="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-gold w-0 rounded-full shadow-[0_0_10px_#D4C5A5]"></div>
+                </div>
+            </div>
+
+            <div id="mini-content" class="opacity-0 flex items-center gap-4 px-4">
+                <span class="text-white text-sm font-semibold tracking-tight">Drive</span>
+                <div class="w-[1px] h-3 bg-white/20"></div>
+                <div class="flex gap-2">
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <span class="text-[10px] text-gray-400">Online</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="flex h-screen opacity-0 transform scale-95 transition-all duration-700">
+
+        <!-- Sidebar -->
+        <aside class="w-64 glass-panel border-r border-r-white/5 flex flex-col justify-between py-6 z-40 hidden md:flex">
+            <div class="px-6">
+                <div class="h-8 mb-10 flex items-center gap-2 text-gold">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    <span class="font-semibold tracking-wide text-white">StackShift</span>
+                </div> 
+                
+                <button
+                    class="w-full bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl py-3 px-4 flex items-center gap-3 transition-all duration-300 group mb-8">
+                    <svg class="w-5 h-5 text-gold group-hover:scale-110 transition-transform" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span class="font-medium text-sm">New Upload</span>
+                </button>
+
+                <nav class="space-y-1">
+                    <a href="#"
+                        class="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-goldDim text-gold border border-gold/20">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        <span class="text-sm font-medium">My Files</span>
+                    </a>
+                    <a href="#"
+                        class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                            </path>
+                        </svg>
+                        <span class="text-sm">Shared</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="px-6">
+                <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <div class="flex justify-between text-xs text-gray-400 mb-2">
+                        <span>Storage</span>
+                        <span class="text-gold">75%</span>
+                    </div>
+                    <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div class="h-full bg-gold w-3/4 shadow-[0_0_8px_#D4C5A5]"></div>
+                    </div>
+                    <div class="mt-2 text-[10px] text-gray-500">15GB of 20GB used</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col relative overflow-hidden bg-gradient-to-br from-bg to-[#0a0a0a]">
+
+            <header class="h-20 flex items-center justify-between px-8 nav-glass sticky top-0 z-30">
+                <div class="flex-1 max-w-2xl relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-500 group-hover:text-gold transition-colors" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text"
+                        class="block w-full pl-10 pr-3 py-2 border border-white/10 rounded-xl leading-5 bg-white/5 text-gray-300 placeholder-gray-600 focus:outline-none focus:bg-white/10 focus:border-gold/30 focus:ring-0 transition-all sm:text-sm"
+                        placeholder="Search files...">
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-8 relative" id="scroll-container">
+
+                <div class="flex items-end justify-between mb-6">
+                    <h2 class="text-xl font-light text-white tracking-wide">Downloads</h2>
+                    <div class="text-xs text-gold border-b border-gold/30 pb-0.5 cursor-pointer">View All</div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+                    <!-- Card 1: MIMIM Reader -->
+                    <div onclick="openModal('MIMIM Reader', 'Web Application', 'Mimimi.rar', '6.9MB')"
+                        class="group glass-panel rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:scale-[1.02] gold-glow relative overflow-hidden">
+                        <div
+                            class="h-32 rounded-xl bg-black/40 flex items-center justify-center mb-4 border border-white/5 group-hover:border-white/10 relative overflow-hidden">
+                            <!-- Placeholder Image -->
+                            <div class="absolute inset-0 bg-gradient-to-br from-purple-900/40 to-blue-900/40 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+                            
+                            <svg class="w-10 h-10 text-gray-200 group-hover:text-gold transition-colors z-20 relative shadow-xl"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-sm font-medium text-white group-hover:text-gold transition-colors">MIMIM Reader</h3>
+                                <p class="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">Source Code</p>
+                            </div>
+                            <div class="p-1.5 rounded-full bg-white/5 text-gray-400 group-hover:text-white group-hover:bg-gold/20 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Portfolio -->
+                    <div onclick="openModal('My Portfolio 2025', 'Design Assets', 'Portfolio.rar', '15.2MB')"
+                        class="group glass-panel rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:scale-[1.02] gold-glow relative overflow-hidden">
+                        <div
+                            class="h-32 rounded-xl bg-black/40 flex items-center justify-center mb-4 border border-white/5 group-hover:border-white/10 relative overflow-hidden">
+                            <!-- Placeholder Image -->
+                            <div class="absolute inset-0 bg-gradient-to-br from-pink-900/40 to-orange-900/40 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+
+                            <svg class="w-10 h-10 text-gray-200 group-hover:text-gold transition-colors z-20 relative shadow-xl"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-sm font-medium text-white group-hover:text-gold transition-colors">
+                                    Portfolio</h3>
+                                <p class="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">Design / PDF</p>
+                            </div>
+                            <div class="p-1.5 rounded-full bg-white/5 text-gray-400 group-hover:text-white group-hover:bg-gold/20 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: BotPython.rar (NEW) -->
+                    <div onclick="openModal('Bot Python Automation', 'Python Script', 'BotPython.rar', '2.4MB')"
+                        class="group glass-panel rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:scale-[1.02] gold-glow relative overflow-hidden">
+                        <div
+                            class="h-32 rounded-xl bg-black/40 flex items-center justify-center mb-4 border border-white/5 group-hover:border-white/10 relative overflow-hidden">
+                            <!-- Placeholder Image -->
+                            <div class="absolute inset-0 bg-gradient-to-br from-green-900/40 to-teal-900/40 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+
+                            <!-- Terminal / Code Icon -->
+                            <svg class="w-10 h-10 text-gray-200 group-hover:text-gold transition-colors z-20 relative shadow-xl"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-sm font-medium text-white group-hover:text-gold transition-colors">
+                                    Bot Python</h3>
+                                <p class="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">Automation / Script</p>
+                            </div>
+                            <div class="p-1.5 rounded-full bg-white/5 text-gray-400 group-hover:text-white group-hover:bg-gold/20 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Placeholder Cards -->
+                    <div
+                        class="group glass-panel rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:scale-[1.02] gold-glow relative overflow-hidden opacity-50">
+                        <div class="h-32 rounded-xl bg-black/40 flex items-center justify-center mb-4 border border-white/5">
+                             <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <h3 class="text-sm font-medium text-gray-500">Coming Soon</h3>
+                    </div>
+
+                </div>
+
+                <div class="mt-20 text-center pb-8 border-t border-white/5 pt-8">
+                    <p class="text-[10px] text-gray-600 uppercase tracking-widest">© 2025 Stack Shift — Designed for Creators</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal-overlay" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-[30px]" onclick="closeModal()"></div>
+
+        <div id="modal-content"
+            class="absolute inset-0 m-auto w-[90%] md:w-[800px] h-[500px] bg-[#0A0A0A] border border-white/10 rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden transform scale-90 opacity-0 transition-all duration-500">
+
+            <!-- Left Side -->
+            <div class="w-full md:w-1/3 bg-black/50 border-r border-white/5 p-8 flex flex-col justify-between">
+                <div>
+                    <div
+                        class="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center mb-6 text-gold">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h2 id="modal-title" class="text-2xl font-light text-white mb-2 leading-tight">Prompt Title</h2>
+                    <span id="modal-type"
+                        class="text-xs text-gold border border-gold/20 px-2 py-1 rounded bg-goldDim inline-block mb-6">Category</span>
+
+                    <div class="space-y-4 text-xs text-gray-400">
+                        <!-- เพิ่ม id="modal-size" เพื่อให้เปลี่ยนค่าได้ -->
+                        <div class="flex justify-between border-b border-white/5 pb-2"><span>Size</span> <span id="modal-size" class="text-gray-200">Unknown</span></div>
+                        <div class="flex justify-between border-b border-white/5 pb-2"><span>Updated</span> <span class="text-gray-200">Dec 2025</span></div>
+                        <div class="flex justify-between border-b border-white/5 pb-2"><span>Format</span> <span class="text-gray-200">RAR / ZIP</span></div>
+                    </div>
+                </div>
+
+                <button id="btn-download" onclick="downloadRealFile()"
+                    class="mt-6 w-full bg-white text-black font-medium py-3 rounded-xl hover:bg-gold transition-all duration-300 flex justify-center items-center gap-2 active:scale-95 group shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                    <span id="btn-text">Download Pack</span>
+
+                    <svg id="btn-icon" class="w-4 h-4 transition-transform group-hover:translate-y-0.5" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+
+                    <svg id="btn-spinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-black hidden"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Right Side (Code Preview) -->
+            <div class="w-full md:w-2/3 bg-[#0f0f0f] relative flex flex-col hidden md:flex">
+                <div class="h-10 border-b border-white/5 flex items-center px-4 gap-2 bg-[#0A0A0A]">
+                    <div class="w-3 h-3 rounded-full bg-red-500/20"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/20"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/20"></div>
+                </div>
+                <div class="p-6 overflow-hidden relative flex-1">
+                    <pre class="text-xs text-gray-400 font-mono leading-relaxed opacity-70">
+// Asset Details
+{
+  "permissions": "Personal & Commercial Use",
+  "compatibility": ["Windows", "MacOS", "Linux"],
+  "contents": [
+    "Source Code",
+    "Assets / Images",
+    "Documentation.pdf"
+  ],
+  "instructions": "Extract the .rar file and run index.html",
+  "support": "contact@stackshift.dev"
+}
+
+// System Status
+> Checking dependencies... OK
+> Verifying integrity... OK
+> Ready for deployment.
+</pre>
+                    <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#0f0f0f] to-transparent">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ตัวแปรสำหรับเก็บชื่อไฟล์ที่จะดาวน์โหลด
+        let currentDownloadTarget = "";
+
+        // --------------------------------------------------
+        // 1. Animation เริ่มต้น
+        // --------------------------------------------------
+        window.addEventListener('load', () => {
+            const tl = gsap.timeline();
+            const island = document.getElementById('dynamic-island');
+            const loaderContent = document.getElementById('loading-content');
+            const miniContent = document.getElementById('mini-content');
+            const bar = document.getElementById('progress-bar');
+            const app = document.getElementById('app-container');
+
+            tl.to(island, { width: '320px', height: '60px', duration: 0.8, ease: "power4.out" })
+                .to(bar, { width: '100%', duration: 1.5, ease: "power2.inOut" })
+                .to(loaderContent, { opacity: 0, duration: 0.3 })
+                .to(island, {
+                    width: '180px', height: '36px', y: -5, borderRadius: '20px',
+                    backgroundColor: 'rgba(20,20,20,0.8)', backdropFilter: 'blur(20px)',
+                    duration: 0.8, ease: "elastic.out(1, 0.7)"
+                })
+                .to(miniContent, { opacity: 1, duration: 0.3 }, "-=0.4")
+                .to(app, { opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" }, "-=0.5");
+        });
+
+        // --------------------------------------------------
+        // 2. ฟังก์ชันเปิด Modal (รับชื่อไฟล์ + ขนาดไฟล์ด้วย)
+        // --------------------------------------------------
+        window.openModal = function (title, type, fileName, fileSize = 'Unknown') {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+
+            // อัปเดตข้อมูลหน้า UI
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-type').innerText = type;
+            document.getElementById('modal-size').innerText = fileSize;
+
+            // **สำคัญ: จำค่าชื่อไฟล์ไว้ในตัวแปร**
+            currentDownloadTarget = fileName;
+
+            // แสดง Modal
+            overlay.classList.remove('hidden');
+            gsap.to(content, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.2)" });
+        }
+
+        // --------------------------------------------------
+        // 3. ปิด Modal
+        // --------------------------------------------------
+        window.closeModal = function () {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+
+            gsap.to(content, {
+                scale: 0.9, opacity: 0, duration: 0.3, ease: "power2.in",
+                onComplete: () => overlay.classList.add('hidden')
+            });
+        }
+
+        // --------------------------------------------------
+        // 4. ดาวน์โหลดไฟล์ (ใช้ชื่อไฟล์จากตัวแปร)
+        // --------------------------------------------------
+        window.downloadRealFile = function () {
+            // ถ้าไม่มีไฟล์ให้หยุด
+            if (!currentDownloadTarget) {
+                alert("No file selected!");
+                return;
+            }
+
+            const fileName = currentDownloadTarget;
+            // ตั้งค่า Path ของไฟล์ (ถ้าไฟล์อยู่ในโฟลเดอร์ files/ ให้คงไว้ ถ้าอยู่หน้าแรกให้ลบ files/ ออก)
+            const filePath = "./files/" + fileName; 
+            // const filePath = fileName; // ใช้บรรทัดนี้แทนถ้าไฟล์วางกองรวมกับ index.html
+
+            const island = document.getElementById('dynamic-island');
+            const loaderContent = document.getElementById('loading-content');
+            const miniContent = document.getElementById('mini-content');
+            const bar = document.getElementById('progress-bar');
+            const loadingText = loaderContent.querySelector('span');
+
+            // Animation เริ่ม
+            loadingText.innerText = "Downloading...";
+            gsap.set(bar, { width: '0%' });
+
+            const dlTl = gsap.timeline();
+
+            dlTl.to(miniContent, { opacity: 0, duration: 0.2 })
+                .to(island, {
+                    width: '320px', height: '60px',
+                    backgroundColor: '#050505',
+                    duration: 0.5, ease: "back.out(1.7)"
+                })
+                .to(loaderContent, { opacity: 1, duration: 0.2 }, "<")
+                .to(bar, { width: '100%', duration: 1.5, ease: "power2.inOut" })
+                .call(() => {
+                    // สร้าง Link กดโหลดอัตโนมัติ
+                    const link = document.createElement("a");
+                    link.href = filePath;
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                })
+                .call(() => window.closeModal())
+                .to(loaderContent, { opacity: 0, delay: 0.5, duration: 0.2 })
+                .to(island, {
+                    width: '180px', height: '36px',
+                    backgroundColor: 'rgba(20,20,20,0.8)',
+                    duration: 0.6, ease: "power3.inOut"
+                })
+                .to(miniContent, { opacity: 1, duration: 0.2 });
+        }
+    </script>
+
+</body>
+
+</html>
